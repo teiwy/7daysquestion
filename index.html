@@ -5,27 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>What is the life</title>
   <style>
-    body {
+    html, body {
       font-family: 'Comic Sans MS', cursive, sans-serif;
       background-color: white;
       margin: 0;
       padding: 0;
-      overflow-x: hidden;
+      height: 100%;
     }
     .container {
       max-width: 600px;
-      margin: 30px auto 100px;
-      padding: 0 20px;
+      margin: 0 auto;
+      padding: 100px 20px 150px;
+      box-sizing: border-box;
     }
     h1 {
       text-align: center;
-      font-size: 48px;
-      margin-bottom: 30px;
+      font-size: 36px;
+      margin-bottom: 20px;
     }
     .answer {
       display: flex;
       align-items: center;
       margin-bottom: 20px;
+      word-break: break-word;
     }
     .answer input[type="radio"] {
       margin-right: 15px;
@@ -33,7 +35,7 @@
     }
     .answer p {
       margin: 0;
-      font-size: 18px;
+      font-size: 16px;
     }
     .answer span {
       display: block;
@@ -50,42 +52,41 @@
       flex-direction: column;
       align-items: center;
       padding: 10px;
+      box-sizing: border-box;
+      z-index: 10;
     }
     .inputs {
       display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 5px;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      max-width: 600px;
     }
     .form-bar input {
       font-family: 'Comic Sans MS', cursive, sans-serif;
-      font-size: 18px;
+      font-size: 16px;
       padding: 10px;
       border: 2px solid black;
       border-radius: 20px;
-      width: 250px;
+      width: 100%;
+      box-sizing: border-box;
     }
-    .note {
+    .note, #countdown {
       font-size: 14px;
       color: #888;
       font-style: italic;
+      margin-top: 5px;
+      text-align: center;
     }
     #answersContainer {
       margin-top: 20px;
-    }
-    #countdown {
-      font-size: 14px;
-      color: #888;
-      font-style: italic;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>What is the life</h1>
-    <div id="answersContainer">
-      <!-- Dynamic answers go here -->
-    </div>
+    <h1 id="question">What is the life</h1>
+    <div id="answersContainer"></div>
   </div>
 
   <div class="form-bar">
@@ -122,31 +123,28 @@
     }
 
     function saveAnswers() {
-      const answersHTML = answersContainer.innerHTML;
-      localStorage.setItem('answers', answersHTML);
-      localStorage.setItem('lastResetTimestamp', getCurrentUTCDayTimestamp());
+      const data = {
+        question: document.getElementById('question').textContent,
+        html: answersContainer.innerHTML,
+        timestamp: getCurrentUTCDayTimestamp()
+      };
+      localStorage.setItem('chatData', JSON.stringify(data));
     }
 
     function getCurrentUTCDayTimestamp() {
       const now = new Date();
-      const utcYear = now.getUTCFullYear();
-      const utcMonth = now.getUTCMonth();
-      const utcDate = now.getUTCDate();
-      return Date.UTC(utcYear, utcMonth, utcDate);
+      return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
     }
 
     function loadAnswers() {
-      const savedTimestamp = parseInt(localStorage.getItem('lastResetTimestamp'), 10);
-      const currentUTCTimestamp = getCurrentUTCDayTimestamp();
-
-      if (savedTimestamp === currentUTCTimestamp) {
-        const savedAnswers = localStorage.getItem('answers');
-        if (savedAnswers) {
-          answersContainer.innerHTML = savedAnswers;
-        }
+      const data = JSON.parse(localStorage.getItem('chatData'));
+      const today = getCurrentUTCDayTimestamp();
+      if (data && data.timestamp === today) {
+        answersContainer.innerHTML = data.html || '';
+        document.getElementById('question').textContent = data.question || 'What is the life';
       } else {
-        localStorage.removeItem('answers');
-        localStorage.setItem('lastResetTimestamp', currentUTCTimestamp);
+        localStorage.removeItem('chatData');
+        saveAnswers();
       }
     }
 
@@ -163,7 +161,6 @@
     }
 
     setInterval(updateCountdown, 1000);
-
     loadAnswers();
     updateCountdown();
   </script>
